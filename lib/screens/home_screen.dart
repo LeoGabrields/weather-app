@@ -14,9 +14,12 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    Provider.of<WeatherProvider>(context, listen: false).location(
-      latitude: -22.738823,
-      longitude: -48.795562,
+    final response = Location().getLocation();
+    response.then(
+      (value) => Provider.of<WeatherProvider>(context, listen: false).location(
+        latitude: value.latitude!,
+        longitude: value.longitude!,
+      ),
     );
   }
 
@@ -24,23 +27,10 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final weather = Provider.of<WeatherProvider>(context).weather['weather'];
 
-    Future<void> myLocation() async {
-      final s = await Location().getLocation();
-
-      Provider.of<WeatherProvider>(context, listen: false).location(
-        latitude: s.latitude!,
-        longitude: s.longitude!,
-      );
-    }
-
     return Scaffold(
       body: Center(
         child: Column(
           children: [
-            TextButton(
-              onPressed: myLocation,
-              child: const Text('Minha Localização'),
-            ),
             Text(weather?.cityName ?? ''),
             Text((weather?.temp.toStringAsFixed(0) ?? '') + '°C')
           ],
