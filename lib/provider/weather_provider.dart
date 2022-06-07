@@ -10,7 +10,7 @@ class WeatherProvider with ChangeNotifier {
 
   void location({required double latitude, required double longitude}) {
     linkApi =
-        'https://api.openweathermap.org/data/2.5/weather?lat=$latitude&lon=$longitude&appid=bff7cddd184de822d84f2fa8ac558edf';
+        'https://api.openweathermap.org/data/2.5/weather?lat=$latitude&lon=$longitude&appid=bff7cddd184de822d84f2fa8ac558edf&lang=pt_br';
     notifyListeners();
     loadWeather();
   }
@@ -18,16 +18,18 @@ class WeatherProvider with ChangeNotifier {
   Future<void> loadWeather() async {
     final response = await http.get(Uri.parse(linkApi!));
     var responseBody = jsonDecode(response.body);
-
+    print(responseBody);
     weather.addAll({
       'weather': WeatherModel(
         cityName: responseBody['name'],
         climate: responseBody['weather'][0]['description'],
         country: responseBody['sys']['country'],
-        maxTemp: responseBody['main']['temp_max'],
-        minTemp: responseBody['main']['temp_min'],
+        maxTemp: (responseBody['main']['temp_max']as double) - 273.15,
+        minTemp: (responseBody['main']['temp_min']as double) - 273.15,
         temp: (responseBody['main']['temp'] as double) - 273.15,
         windSpeed: responseBody['wind']['speed'],
+        clima: responseBody['weather'][0]['main'],
+
       )
     });
     notifyListeners();
