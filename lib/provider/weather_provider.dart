@@ -5,12 +5,12 @@ import 'package:flutter_application_1/models/weather_model.dart';
 import 'package:http/http.dart' as http;
 
 class WeatherProvider with ChangeNotifier {
-  final Map<String, WeatherModel> tempo = {};
+  final Map<String, WeatherModel> weather = {};
   String? linkApi;
 
-  void location([double lat = 0.0, double lon = 0.0]) {
+  void location({required double latitude, required double longitude}) {
     linkApi =
-        'https://api.openweathermap.org/data/2.5/weather?lat=$lat&lon=$lon&appid=bff7cddd184de822d84f2fa8ac558edf';
+        'https://api.openweathermap.org/data/2.5/weather?lat=$latitude&lon=$longitude&appid=bff7cddd184de822d84f2fa8ac558edf';
     notifyListeners();
     loadWeather();
   }
@@ -19,7 +19,7 @@ class WeatherProvider with ChangeNotifier {
     final response = await http.get(Uri.parse(linkApi!));
     var responseBody = jsonDecode(response.body);
 
-    tempo.addAll({
+    weather.addAll({
       'weather': WeatherModel(
         cityName: responseBody['name'],
         climate: responseBody['weather'][0]['description'],
