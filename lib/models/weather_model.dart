@@ -1,24 +1,31 @@
-class WeatherModel {
-  final String cityName;
-  final String country;
-  final String climate;
-  final double windSpeed;
-  final double tempMin;
-  final double tempMax;
-  final double temp;
-  final String clima;
-  final String icon;
+import 'package:weather_app/api/weather_api.dart';
 
-  WeatherModel({
-    required this.climate,
-    required this.country,
-    required this.cityName,
-    required this.windSpeed,
-    required this.tempMin,
-    required this.tempMax,
-    required this.temp,
-    required this.clima,
-    required this.icon
+class Weather {
+  String? cityName;
+  String? climate;
+  String? temp;
+  String? tempMax;
+  String? tempMin;
+  String? icon;
+  List? dayWeather;
+  List? weekDay;
+
+  Weather({
+    this.cityName,
+    this.climate,
+    this.temp,
+    this.tempMax,
+    this.tempMin,
+    this.icon,
+    this.dayWeather,
   });
-  
+
+  Weather.fromJson(Map<String, dynamic> json, List jsonCity) {
+    climate = json['current']['weather'][0]['description'];
+    temp = (json['current']['temp'] as double).toStringAsFixed(0);
+    icon = json['current']['weather'][0]['icon'];
+    dayWeather = json['daily'];
+    cityName = jsonCity[0]['name'];
+    weekDay = WeatherApi().getWeekDay();
+  }
 }

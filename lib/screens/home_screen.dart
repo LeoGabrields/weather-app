@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import '../provider/weather_provider.dart';
+import '../api/weather_api.dart';
+import '../components/custom_painter.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -11,119 +11,152 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   @override
-  void initState() {
-    super.initState();
-    Provider.of<WeatherProvider>(context, listen: false).currentLocation();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final weather = Provider.of<WeatherProvider>(context).weather['weather'];
-
-    String imageWeather() {
-      String chuva = 'lib/assets/images/chuva.jpg';
-      String sol = 'lib/assets/images/sol.jpg';
-      String neve = 'lib/assets/images/neve.jpg';
-      String nublado = 'lib/assets/images/nublado.jpg';
-
-      if (weather?.clima == 'Sun') {
-        return sol;
-      }
-      if (weather?.clima == 'Rain') {
-        return chuva;
-      }
-      if (weather?.clima == 'Snow') {
-        return neve;
-      }
-      if (weather?.clima == 'Clouds') {
-        return nublado;
-      }
-      return sol;
-    }
-
-    Widget customText(String title, String temp, [double size = 20.0]) {
-      return Text(
-        title + temp + '°C',
-        style: TextStyle(color: Colors.white, fontSize: size),
-      );
-    }
-
-    return Scaffold(
-      body: Stack(
-        children: [
-          Container(
-            width: double.maxFinite,
-            decoration: BoxDecoration(
-              image: DecorationImage(
-                image: AssetImage(imageWeather()),
-                fit: BoxFit.cover,
-              ),
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                const SizedBox(height: 50),
-                Card(
-                  elevation: 10,
-                  color: Colors.black45,
-                  child: Padding(
-                    padding: const EdgeInsets.all(25),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: [
-                        Column(
-                          children: [
-                            Text(
-                              weather?.cityName ?? '',
-                              style: const TextStyle(
-                                  color: Colors.white, fontSize: 17),
-                            ),
-                            customText(
-                                '', weather?.temp.toStringAsFixed(0) ?? '', 65),
-                            Row(
-                              children: [
-                                customText(
-                                    'Temp.max: ',
-                                    weather?.tempMax.toStringAsFixed(0) ?? '',
-                                    13),
-                                const SizedBox(width: 10),
-                                customText(
-                                    'Temp.min: ',
-                                    weather?.tempMin.toStringAsFixed(0) ?? '',
-                                    13),
-                              ],
-                            )
-                          ],
-                        ),
-                        Column(
-                          children: [
-                            Image.network(
-                              'http://openweathermap.org/img/wn/${weather?.icon ?? '01n'}@2x.png',
-                              width: 80,
-                            ),
-                            Text(
-                              weather?.climate ?? '',
-                              style: const TextStyle(
-                                  color: Colors.white, fontSize: 13),
-                            ),
-                          ],
-                        )
-                      ],
+    WeatherApi api = WeatherApi();
+    final size = MediaQuery.of(context).size;
+    return SafeArea(
+      child: Scaffold(
+        backgroundColor: const Color.fromARGB(255, 06, 06, 40),
+        body: FutureBuilder(
+          future: api.getData(),
+          builder: (ctx, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(
+                child: CircularProgressIndicator(color: Colors.white),
+              );
+            } else {
+              return Stack(
+                children: [
+                  SizedBox(
+                    height: size.height * 0.55,
+                    child: Padding(
+                      padding: const EdgeInsets.all(25),
+                      child: Column(
+                        children: [
+                          Row(
+                            children: [
+                              Text(
+                                api.data.cityName!,
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                    fontSize: 18),
+                                textAlign: TextAlign.start,
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: size.height * 0.055),
+                          Image.network(
+                            'http://openweathermap.org/img/wn/${api.data.icon}@2x.png',
+                          ),
+                          Text(
+                            (api.data.temp!) + '°',
+                            style: Theme.of(context).textTheme.headline2,
+                          ),
+                          Text(
+                            api.data.climate!,
+                            style: Theme.of(context).textTheme.headline1,
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                ),
-              ],
-            ),
-          ),
-          Positioned(
-            width: MediaQuery.of(context).size.width * 1,
-            top: MediaQuery.of(context).size.height * 0.4,
-            bottom: 0,
-            child: Container(
-              color: Colors.black38,
-            ),
-          )
-        ],
+                  Positioned(
+                    width: size.width * 1,
+                    bottom: size.height * 0.45,
+                    child: CustomPaint(
+                      size: Size(double.maxFinite, (200 * 0.5).toDouble()),
+                      painter: RPSCustomPainter(),
+                    ),
+                  ),
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      Container(
+                        color: Colors.white10,
+                        width: size.width * 1,
+                        height: size.height * 0.45,
+                        child: Column(
+                          children: [
+                            SizedBox(
+                              width: size.width * 1,
+                              height: 100,
+                              child: ListView.builder(
+                                addAutomaticKeepAlives: true,
+                                itemCount: api.data.dayWeather!.length,
+                                scrollDirection: Axis.horizontal,
+                                padding:
+                                    const EdgeInsets.only(right: 10, left: 10),
+                                itemBuilder: (ctx, index) {
+                                  final dayWeather =
+                                      api.data.dayWeather![index];
+                                  return Padding(
+                                    padding: const EdgeInsets.all(3),
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                          borderRadius:
+                                              BorderRadius.circular(30),
+                                          border: Border.all(
+                                              width: 1, color: Colors.white24)),
+                                      height: 55,
+                                      width: 55,
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(10),
+                                        child: Column(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceAround,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.center,
+                                          children: [
+                                            Text(api.data.weekDay![index],
+                                                style: const TextStyle(
+                                                  fontSize: 10,
+                                                  color: Colors.white,
+                                                )),
+                                            Image.network(
+                                                'http://openweathermap.org/img/wn/${dayWeather['weather'][0]['icon']}@2x.png'),
+                                            Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.center,
+                                              children: [
+                                                Text(
+                                                  (dayWeather['temp']['max']
+                                                              as num)
+                                                          .toStringAsFixed(0) +
+                                                      '° ',
+                                                  style: const TextStyle(
+                                                      color: Colors.white,
+                                                      fontSize: 10),
+                                                ),
+                                                Text(
+                                                  (dayWeather['temp']['min']
+                                                              as num)
+                                                          .toStringAsFixed(0) +
+                                                      '°',
+                                                  style: const TextStyle(
+                                                      color: Colors.white54,
+                                                      fontSize: 10),
+                                                ),
+                                              ],
+                                            )
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              );
+            }
+          },
+        ),
       ),
     );
   }
