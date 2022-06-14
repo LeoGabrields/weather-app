@@ -26,7 +26,7 @@ class WeatherApi {
         'https://api.openweathermap.org/data/2.5/onecall?lat=${resp.latitude}&lon=${resp.longitude}&units=metric&lang=pt_br&appid=$apiKey');
     var response = await http.get(urlApi);
     var body = jsonDecode(response.body);
-    
+    print('object');
 
     return Weather.fromJson(body, cityBody);
   }
