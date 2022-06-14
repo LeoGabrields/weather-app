@@ -9,6 +9,10 @@ class Weather {
   String? icon;
   List? dayWeather;
   List? weekDay;
+  int? humidity;
+  String? windSpeed;
+  double? uvi;
+  
 
   Weather({
     this.cityName,
@@ -18,14 +22,22 @@ class Weather {
     this.tempMin,
     this.icon,
     this.dayWeather,
+    this.humidity,
+    this.uvi,
+    this.weekDay,
+    this.windSpeed,
+   
   });
 
-  Weather.fromJson(Map<String, dynamic> json, List jsonCity) {
-    climate = json['current']['weather'][0]['description'];
-    temp = (json['current']['temp'] as double).toStringAsFixed(0);
-    icon = json['current']['weather'][0]['icon'];
+  Weather.fromJson(Map<String, dynamic> json, Map jsonCity) {
+    climate = jsonCity['weather'][0]['description'];
+    temp = (jsonCity['main']['temp'] as double).toStringAsFixed(0);
+    icon = jsonCity['weather'][0]['icon'];
+    humidity = jsonCity['main']['humidity'];
+    windSpeed = (jsonCity['wind']['speed'] * 3.6 as double).toStringAsFixed(0);
+    uvi = json['current']['uvi'];
     dayWeather = json['daily'];
-    cityName = jsonCity[0]['name'];
+    cityName = jsonCity['name'];
     weekDay = WeatherApi().getWeekDay();
   }
 }
